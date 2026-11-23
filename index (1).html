@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buku Nilai Kelas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme:dark;
+    --latar:#060818; --tinta:#e9ecff; --redup:#8f98c4; --garis:#25306a; --panel:rgba(16,21,56,.72);
+    --utama:#22d3ee; --utama-muda:rgba(34,211,238,.14);
+    --ungu:#8b5cf6; --emas:#fbbf24;
+    --merah:#ff7a9c; --merah-muda:rgba(255,122,156,.14);
+    --hijau:#5eead4; --hijau-muda:rgba(94,234,212,.14);
+    --kuning:#fbbf24; --kuning-muda:rgba(251,191,36,.14);
+    --abu-muda:rgba(143,152,196,.14);
+    --bayang:0 0 0 1px rgba(139,92,246,.12), 0 12px 40px rgba(2,4,24,.6);
+    --samping:#04061a;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; color:var(--tinta); line-height:1.55;
+    font-family:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(ellipse 60% 50% at 85% 0%, rgba(139,92,246,.35), transparent 70%),
+      radial-gradient(ellipse 50% 45% at 10% 100%, rgba(34,211,238,.18), transparent 70%),
+      var(--latar);
+    background-attachment:fixed;
+  }
+  /* Bintang (hiasan) */
+  body::before {
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent),
+      radial-gradient(1px 1px at 27% 72%, #cfe3ff, transparent),
+      radial-gradient(2px 2px at 41% 35%, #fff, transparent),
+      radial-gradient(1px 1px at 58% 88%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 66% 14%, #ffe9a8, transparent),
+      radial-gradient(1px 1px at 79% 58%, #fff, transparent),
+      radial-gradient(2px 2px at 91% 33%, #cfe3ff, transparent),
+      radial-gradient(1px 1px at 5% 52%, #fff, transparent),
+      radial-gradient(1px 1px at 48% 5%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 95% 90%, #fff, transparent);
+    background-size:420px 420px, 380px 380px, 520px 520px, 330px 330px, 460px 460px, 400px 400px, 560px 560px, 350px 350px, 300px 300px, 480px 480px;
+    animation:kerlip 6s ease-in-out infinite alternate;
+  }
+  /* Planet bercincin (hiasan) */
+  body::after {
+    content:""; position:fixed; right:-90px; bottom:-90px; width:300px; height:300px; border-radius:50%;
+    pointer-events:none; z-index:0; opacity:.55;
+    background:radial-gradient(circle at 30% 28%, #ffd89a 0%, #e08a4a 38%, #7a2f5c 78%, #2a1245 100%);
+    box-shadow:inset -28px -22px 50px rgba(0,0,0,.55), 0 0 90px rgba(224,138,74,.25);
+  }
+  @keyframes kerlip { from { opacity:.65; } to { opacity:1; } }
+
+  .tata { position:relative; z-index:1; display:grid; grid-template-columns:360px 1fr; min-height:100vh; }
+
+  /* ---------- Panel SQL: konsol pesawat ---------- */
+  aside {
+    background:linear-gradient(180deg, rgba(4,6,26,.94), rgba(8,10,40,.94)); color:#c4ccf0; padding:22px 18px;
+    position:sticky; top:0; height:100vh; overflow-y:auto; border-right:1px solid var(--garis);
+    font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace; font-size:.78rem;
+  }
+  aside h2 { font-family:"Space Grotesk",sans-serif; font-size:1.15rem; font-weight:700; margin:0 0 6px; color:#fff; display:flex; align-items:center; gap:10px; }
+  aside h2::before { content:""; width:10px; height:10px; border-radius:50%; background:var(--utama); box-shadow:0 0 0 4px rgba(34,211,238,.2), 0 0 14px var(--utama); }
+  aside p.ket { font-family:"Space Grotesk",sans-serif; margin:0 0 18px; color:var(--redup); font-size:.86rem; }
+  .kotak { background:rgba(20,26,70,.55); border:1px solid var(--garis); border-left:3px solid var(--ungu); border-radius:10px; padding:12px; margin-bottom:12px; transition:border-color .4s, box-shadow .4s; }
+  .kotak .judul { font-family:"Space Grotesk",sans-serif; font-weight:600; color:#a9b4e6; margin-bottom:8px; font-size:.8rem; }
+  pre { margin:0; white-space:pre-wrap; word-break:break-word; }
+  .kw { color:#67e8f9; font-weight:600; }
+  .str { color:#fcd679; }
+  .num { color:#c4a5ff; }
+  .arti { font-family:"Space Grotesk",sans-serif; color:#c9d1f2; margin-top:10px; font-size:.84rem; }
+  .meta { color:#6f7ab0; margin-top:6px; font-size:.72rem; }
+  .baru { border-left-color:var(--utama); box-shadow:0 0 22px rgba(34,211,238,.25); }
+
+  /* ---------- Konten ---------- */
+  main { padding:36px 32px 56px; max-width:860px; width:100%; }
+  .kepala { margin-bottom:26px; }
+  h1 { font-family:"Orbitron","Space Grotesk",sans-serif; font-size:2rem; font-weight:800; letter-spacing:.02em; margin:0 0 8px; line-height:1.2;
+       background:linear-gradient(90deg,#fff,#a5b4fc 60%,#67e8f9); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  p.sub { margin:0; color:var(--redup); }
+
+  form {
+    display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:10px; align-items:end;
+    background:var(--panel); border:1px solid var(--garis); padding:18px; border-radius:16px; box-shadow:var(--bayang); backdrop-filter:blur(8px);
+  }
+  input, button { font:inherit; font-size:.95rem; padding:11px 13px; border:1px solid var(--garis); border-radius:10px; background:rgba(6,8,24,.7); color:var(--tinta); }
+  input { width:100%; transition:border-color .15s, box-shadow .15s; }
+  input::placeholder { color:var(--redup); }
+  input:hover { border-color:#3d4a9a; }
+  input:focus { outline:none; border-color:var(--utama); box-shadow:0 0 0 4px rgba(34,211,238,.2); }
+  button { cursor:pointer; font-weight:700; background:linear-gradient(135deg,#6d4df2,#22b8e8); color:#fff; border-color:transparent; transition:filter .15s, transform .1s, box-shadow .15s; }
+  button:hover { filter:brightness(1.12); box-shadow:0 0 22px rgba(109,77,242,.5); }
+  button:active { transform:translateY(1px); }
+  button.kecil { background:transparent; color:var(--utama); border-color:var(--garis); padding:6px 12px; font-size:.82rem; font-weight:600; }
+  button.kecil:hover { background:var(--utama-muda); border-color:var(--utama); box-shadow:none; filter:none; }
+  button.hapus { color:var(--merah); }
+  button.hapus:hover { background:var(--merah-muda); border-color:var(--merah); }
+  :focus-visible { outline:3px solid var(--utama); outline-offset:2px; }
+  input:focus-visible { outline:none; }
+
+  #pesan { min-height:1.5em; margin-top:12px; color:var(--merah); font-weight:600; font-size:.9rem; }
+
+  .tabel-wrap { overflow-x:auto; background:var(--panel); border:1px solid var(--garis); border-radius:16px; box-shadow:var(--bayang); margin-top:8px; backdrop-filter:blur(8px); }
+  table { width:100%; border-collapse:collapse; min-width:520px; }
+  th, td { text-align:left; padding:14px 18px; }
+  th { font-size:.8rem; font-weight:600; color:var(--redup); background:rgba(139,92,246,.12); border-bottom:1px solid var(--garis); }
+  td { border-bottom:1px solid rgba(37,48,106,.7); vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr:hover td { background:rgba(34,211,238,.06); }
+  th:last-child, td:last-child { text-align:right; white-space:nowrap; }
+
+  .siswa { display:flex; align-items:center; gap:12px; font-weight:600; }
+  .avatar { flex:none; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; font-size:.8rem; font-weight:700; color:#fff;
+            background:radial-gradient(circle at 30% 28%, #a78bfa, #4c2fb8 70%, #1a1050); box-shadow:0 0 0 2px rgba(167,139,250,.35), 0 0 14px rgba(139,92,246,.45); }
+  .kelas { display:inline-block; padding:2px 10px; border-radius:6px; background:var(--abu-muda); font-size:.85rem; font-weight:600; }
+  .lencana { display:inline-block; min-width:44px; text-align:center; padding:3px 10px; border-radius:999px; font-weight:700; font-size:.88rem; border:1px solid currentColor; }
+  .tinggi { background:var(--hijau-muda); color:var(--hijau); }
+  .sedang { background:var(--kuning-muda); color:var(--kuning); }
+  .rendah { background:var(--merah-muda); color:var(--merah); }
+  .nol { background:var(--abu-muda); color:var(--redup); }
+  .kosong { text-align:center !important; padding:44px 18px; color:var(--redup); }
+
+  @media (max-width:900px) {
+    .tata { grid-template-columns:1fr; }
+    aside { position:static; height:auto; max-height:340px; border-right:none; border-bottom:1px solid var(--garis); }
+    main { padding:26px 16px 44px; }
+  }
+  @media (max-width:560px) {
+    form { grid-template-columns:1fr 1fr; }
+    form input:first-child, form button { grid-column:1 / -1; }
+    h1 { font-size:1.45rem; }
+    body::after { width:200px; height:200px; right:-70px; bottom:-70px; }
+  }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
+
+  /* ===== Versi bergerak ===== */
+  body::before, body::after { display:none; }
+  #langit { position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .semesta { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .kabut { position:absolute; border-radius:50%; filter:blur(70px); opacity:.55; }
+  .k1 { width:55vmax; height:55vmax; top:-22vmax; right:-12vmax; background:radial-gradient(circle,#7c3aed,transparent 65%); animation:hanyut 26s ease-in-out infinite alternate; }
+  .k2 { width:48vmax; height:48vmax; bottom:-24vmax; left:-14vmax; background:radial-gradient(circle,#0ea5c6,transparent 65%); animation:hanyut 32s ease-in-out infinite alternate-reverse; }
+  .k3 { width:34vmax; height:34vmax; top:30%; left:38%; background:radial-gradient(circle,#be3b8c,transparent 65%); opacity:.28; animation:hanyut 38s ease-in-out infinite alternate; }
+  @keyframes hanyut { from { transform:translate(0,0) scale(1); } to { transform:translate(6vmax,4vmax) scale(1.18); } }
+
+  .planet { position:absolute; right:-80px; bottom:-80px; width:300px; height:300px; border-radius:50%;
+    background:radial-gradient(circle at 30% 28%, #ffe2ad 0%, #e8944f 36%, #8a3560 76%, #2a1245 100%);
+    box-shadow:inset -30px -24px 54px rgba(0,0,0,.6), 0 0 100px rgba(232,148,79,.3);
+    animation:melayang 16s ease-in-out infinite alternate; }
+  .cincin { position:absolute; left:-45%; right:-45%; top:35%; bottom:35%; border-radius:50%;
+    border:9px solid rgba(255,222,170,.38); border-bottom-color:rgba(255,222,170,.12); transform:rotate(-20deg); box-shadow:0 0 18px rgba(255,200,130,.25); }
+  .orbit { position:absolute; inset:-70px; animation:putar 22s linear infinite; }
+  .bulan { position:absolute; top:0; left:50%; width:24px; height:24px; margin-left:-12px; border-radius:50%;
+    background:radial-gradient(circle at 32% 30%, #fff, #b6bfdc 55%, #4b5480); box-shadow:0 0 16px rgba(190,205,255,.6); }
+  @keyframes melayang { from { transform:translate(0,0) rotate(0deg); } to { transform:translate(-26px,-22px) rotate(4deg); } }
+  @keyframes putar { to { transform:rotate(360deg); } }
+
+  /* Satu urutan masuk saat halaman dibuka */
+  .kepala, form, .tabel-wrap { animation:masuk .8s cubic-bezier(.2,.7,.2,1) both; }
+  form { animation-delay:.12s; }
+  .tabel-wrap { animation-delay:.24s; }
+  aside { animation:masuk-kiri .9s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes masuk { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:none; } }
+  @keyframes masuk-kiri { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:none; } }
+  tbody tr { animation:baris .5s ease-out both; }
+  tbody tr:nth-child(1){animation-delay:.05s} tbody tr:nth-child(2){animation-delay:.1s} tbody tr:nth-child(3){animation-delay:.15s}
+  tbody tr:nth-child(4){animation-delay:.2s} tbody tr:nth-child(5){animation-delay:.25s} tbody tr:nth-child(n+6){animation-delay:.3s}
+  @keyframes baris { from { opacity:0; transform:translateX(-14px); } to { opacity:1; transform:none; } }
+  .kotak.baru { animation:kotak-masuk .5s cubic-bezier(.2,.7,.2,1); }
+  @keyframes kotak-masuk { from { opacity:0; transform:translateY(-12px) scale(.97); } to { opacity:1; transform:none; } }
+
+  h1 { background-size:220% 100%; animation:masuk .8s cubic-bezier(.2,.7,.2,1) both, kilau 9s ease-in-out infinite alternate; }
+  @keyframes kilau { from { background-position:0% 0; } to { background-position:100% 0; } }
+  aside h2::before { animation:denyut 2.2s ease-in-out infinite; }
+  @keyframes denyut { 50% { box-shadow:0 0 0 8px rgba(34,211,238,0), 0 0 22px var(--utama); } }
+
+  form { transition:box-shadow .3s, border-color .3s; }
+  form:hover, form:focus-within { border-color:rgba(34,211,238,.55); box-shadow:0 0 0 1px rgba(34,211,238,.25), 0 0 36px rgba(34,211,238,.18), 0 12px 40px rgba(2,4,24,.6); }
+  #tombol { position:relative; overflow:hidden; }
+  #tombol::after { content:""; position:absolute; top:0; bottom:0; left:-60%; width:40%; background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent); transform:skewX(-20deg); }
+  #tombol:hover::after { animation:sapu .8s ease; }
+  @keyframes sapu { to { left:130%; } }
+  .avatar { transition:transform .3s; }
+  tbody tr:hover .avatar { transform:scale(1.12) rotate(-8deg); }
+  .lencana { transition:transform .2s, box-shadow .2s; }
+  tbody tr:hover .lencana { transform:scale(1.08); box-shadow:0 0 14px currentColor; }
+  @media (max-width:560px) { .planet { width:200px; height:200px; right:-60px; bottom:-60px; } }
+</style>
+
+</head>
+<body>
+<canvas id="langit" aria-hidden="true"></canvas>
+<div class="semesta" aria-hidden="true"><div class="kabut k1"></div><div class="kabut k2"></div><div class="kabut k3"></div><div class="planet"><i class="cincin"></i><div class="orbit"><b class="bulan"></b></div></div></div>
+<div class="tata">
+  <aside>
+    <h2>Jendela SQL</h2>
+    <p class="ket">Setiap klik di web akan menjalankan perintah SQL. Lihat di sini apa yang dikirim ke database.</p>
+    <div class="kotak">
+      <div class="judul">Struktur tabel (dibuat sekali di awal)</div>
+      <pre id="skema"></pre>
+    </div>
+    <div id="log"></div>
+  </aside>
+
+  <main>
+    <div class="kepala">
+      <h1>Buku Nilai Kelas</h1>
+      <p class="sub">Data tersimpan di database PostgreSQL.</p>
+    </div>
+
+    <form id="form">
+      <input id="nama" placeholder="Nama siswa" required>
+      <input id="kelas" placeholder="Kelas" required>
+      <input id="nilai" type="number" min="0" max="100" placeholder="Nilai">
+      <button type="submit" id="tombol">Tambah siswa</button>
+    </form>
+    <div id="pesan" role="alert"></div>
+
+    <div class="tabel-wrap">
+      <table>
+        <thead><tr><th>Nama</th><th>Kelas</th><th>Nilai</th><th>Aksi</th></tr></thead>
+        <tbody id="isi"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let sedangEdit = null;
+
+  const SKEMA = "CREATE TABLE siswa (\n  id SERIAL PRIMARY KEY,\n  nama VARCHAR(100) NOT NULL,\n  kelas VARCHAR(20) NOT NULL,\n  nilai INTEGER DEFAULT 0\n);";
+
+  // Mewarnai kata kunci SQL supaya mudah dibaca
+  function warnai(teks) {
+    const aman = teks.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return aman
+      .replace(/('(?:[^']|'')*')/g, '<span class="str">$1</span>')
+      .replace(/\b(SELECT|FROM|INSERT INTO|VALUES|UPDATE|SET|DELETE|WHERE|ORDER BY|DESC|RETURNING|CREATE TABLE|PRIMARY KEY|NOT NULL|DEFAULT|SERIAL|VARCHAR|INTEGER)\b/g, '<span class="kw">$1</span>')
+      .replace(/(\s|=|,|\()(\d+)(?=\s|,|\)|;|$)/g, '$1<span class="num">$2</span>');
+  }
+
+  $("skema").innerHTML = warnai(SKEMA);
+
+  // Menambah catatan baru di jendela SQL (yang terbaru di atas)
+  function catat(log) {
+    if (!log) return;
+    const div = document.createElement("div");
+    div.className = "kotak baru";
+    const pre = document.createElement("pre");
+    pre.innerHTML = warnai(log.sql);
+    const arti = document.createElement("div");
+    arti.className = "arti";
+    arti.textContent = log.arti;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = log.baris + " baris terpengaruh \u2022 " + log.waktu;
+    div.append(pre, arti, meta);
+    const wadah = $("log");
+    wadah.prepend(div);
+    setTimeout(() => div.classList.remove("baru"), 1500);
+    while (wadah.children.length > 12) wadah.lastChild.remove();
+  }
+
+  // Hanya untuk tampilan: inisial nama & warna lencana nilai
+  function inisial(nama) {
+    const k = String(nama).trim().split(/\s+/);
+    return ((k[0] || "?")[0] + (k.length > 1 ? k[k.length - 1][0] : "")).toUpperCase();
+  }
+  function kelasNilai(n) {
+    n = Number(n);
+    if (!n) return "nol";
+    if (n >= 80) return "tinggi";
+    if (n >= 60) return "sedang";
+    return "rendah";
+  }
+
+  async function muat() {
+    const res = await fetch("/api/siswa");
+    const hasil = await res.json();
+    catat(hasil.log);
+    const data = hasil.rows;
+    const isi = $("isi");
+    if (!Array.isArray(data) || data.length === 0) {
+      isi.innerHTML = '<tr><td colspan="4" class="kosong">Belum ada siswa. Isi formulir di atas lalu klik Tambah siswa.</td></tr>';
+      return;
+    }
+    isi.innerHTML = "";
+    data.forEach((s) => {
+      const tr = document.createElement("tr");
+
+      const tdNama = document.createElement("td");
+      const wrapNama = document.createElement("div");
+      wrapNama.className = "siswa";
+      const av = document.createElement("span");
+      av.className = "avatar"; av.textContent = inisial(s.nama);
+      const nm = document.createElement("span");
+      nm.textContent = s.nama;
+      wrapNama.append(av, nm);
+      tdNama.appendChild(wrapNama);
+
+      const tdKelas = document.createElement("td");
+      const kl = document.createElement("span");
+      kl.className = "kelas"; kl.textContent = s.kelas;
+      tdKelas.appendChild(kl);
+
+      const tdNilai = document.createElement("td");
+      const lc = document.createElement("span");
+      lc.className = "lencana " + kelasNilai(s.nilai); lc.textContent = s.nilai;
+      tdNilai.appendChild(lc);
+
+      tr.append(tdNama, tdKelas, tdNilai);
+
+      const aksi = document.createElement("td");
+      const ubah = document.createElement("button");
+      ubah.className = "kecil"; ubah.textContent = "Ubah";
+      ubah.onclick = () => {
+        sedangEdit = s.id;
+        $("nama").value = s.nama; $("kelas").value = s.kelas; $("nilai").value = s.nilai;
+        $("tombol").textContent = "Simpan perubahan";
+        $("nama").focus();
+      };
+      const hapus = document.createElement("button");
+      hapus.className = "kecil hapus"; hapus.textContent = "Hapus";
+      hapus.onclick = async () => {
+        if (!confirm("Hapus " + s.nama + "?")) return;
+        const r = await fetch("/api/siswa/" + s.id, { method: "DELETE" });
+        catat((await r.json()).log);
+        muat();
+      };
+      aksi.append(ubah, " ", hapus);
+      tr.appendChild(aksi);
+      isi.appendChild(tr);
+    });
+  }
+
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("pesan").textContent = "";
+    const body = JSON.stringify({ nama: $("nama").value, kelas: $("kelas").value, nilai: $("nilai").value });
+    const url = sedangEdit ? "/api/siswa/" + sedangEdit : "/api/siswa";
+    const res = await fetch(url, { method: sedangEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body });
+    const hasil = await res.json();
+    if (!res.ok) {
+      $("pesan").textContent = hasil.error || "Terjadi kesalahan.";
+      return;
+    }
+    catat(hasil.log);
+    sedangEdit = null;
+    $("form").reset();
+    $("tombol").textContent = "Tambah siswa";
+    muat();
+  });
+
+  muat();
+</script>
+<script>
+  // Hiasan langit: bintang berkelip, paralaks mengikuti kursor, dan bintang jatuh (tidak memengaruhi fungsi buku nilai)
+  (function () {
+    const c = document.getElementById("langit"), g = c.getContext("2d");
+    const diam = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let W, H, bintang = [], meteor = [], mx = 0, my = 0, tx = 0, ty = 0, t = 0, jeda = 160;
+    function ukur() {
+      const D = Math.min(window.devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      c.width = W * D; c.height = H * D;
+      g.setTransform(D, 0, 0, D, 0, 0);
+      bintang = Array.from({ length: Math.round(W * H / 5000) }, () => {
+        const z = Math.random();
+        return { x: Math.random() * W, y: Math.random() * H, z, r: .3 + z * 1.4, p: Math.random() * 6.28, k: .5 + Math.random() * 1.6,
+                 w: Math.random() < .18 ? (Math.random() < .5 ? "255,226,160" : "165,210,255") : "255,255,255" };
+      });
+    }
+    addEventListener("resize", ukur);
+    addEventListener("pointermove", (e) => { tx = e.clientX / W - .5; ty = e.clientY / H - .5; });
+    function gambar() {
+      t++; mx += (tx - mx) * .04; my += (ty - my) * .04;
+      g.clearRect(0, 0, W, H);
+      for (const b of bintang) {
+        const a = diam ? .8 : .3 + .7 * (.5 + .5 * Math.sin(t * .02 * b.k + b.p));
+        const x = ((b.x - mx * b.z * 50) % W + W) % W, y = ((b.y - my * b.z * 50) % H + H) % H;
+        g.fillStyle = "rgba(" + b.w + "," + (a * (.45 + b.z * .55)) + ")";
+        g.beginPath(); g.arc(x, y, b.r, 0, 6.283); g.fill();
+        if (b.r > 1.45) {
+          g.strokeStyle = "rgba(" + b.w + "," + a * .35 + ")"; g.lineWidth = .6;
+          g.beginPath(); g.moveTo(x - 5, y); g.lineTo(x + 5, y); g.moveTo(x, y - 5); g.lineTo(x, y + 5); g.stroke();
+        }
+      }
+      if (!diam) {
+        if (--jeda <= 0) {
+          meteor.push({ x: Math.random() * W * .9 + W * .1, y: -10, vx: -(5 + Math.random() * 4), vy: 3 + Math.random() * 3, u: 0, max: 70 + Math.random() * 30 });
+          jeda = 200 + Math.random() * 360;
+        }
+        meteor = meteor.filter((m) => m.u < m.max);
+        for (const m of meteor) {
+          m.x += m.vx; m.y += m.vy; m.u++;
+          const f = 1 - m.u / m.max, ex = m.x - m.vx * 9, ey = m.y - m.vy * 9;
+          const gr = g.createLinearGradient(m.x, m.y, ex, ey);
+          gr.addColorStop(0, "rgba(255,255,255," + f + ")"); gr.addColorStop(1, "rgba(120,200,255,0)");
+          g.strokeStyle = gr; g.lineWidth = 1.8; g.beginPath(); g.moveTo(m.x, m.y); g.lineTo(ex, ey); g.stroke();
+        }
+        requestAnimationFrame(gambar);
+      }
+    }
+    ukur(); gambar();
+  })();
+</script>
+</body>
+</html>
